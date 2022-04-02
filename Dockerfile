@@ -1,7 +1,7 @@
 FROM jupyter/scipy-notebook
 
 RUN mkdir my-model
-ENV MODEL_DIR =/home/vlottala/my-model
+ENV MODEL_DIR =/home/my-model
 ENV MODEL_FILE_LDA=clf_lda.joblib
 ENV MODEL_FILE_NN=clf_nn.joblib
 
