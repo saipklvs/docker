@@ -1,3 +1,4 @@
+from crypt import methods
 import imp
 import json
 from multiprocessing.spawn import import_main_path
@@ -39,4 +40,39 @@ def line(Line):
     return json.dumps(file_data[Line])
 
 # Flask route so that we can server HTTP traffic on that route
+@app.route("/prediction/<int:Line>", methods=["POST", "GET"])
+# Return prediction for both Neural Network and LDA inference model with the requested row
+def prediction(Line):
+    data = pd.read_json("./test.json")
+    data_test = data.transpose()
+    X = data_test.drop(data_test.loc[:, "Line":"# Letter"].columns, axis=1)
+    X_test = X.iloc[Line, :].values.reshape(1, -1)
     
+    clf_lda = load(MODEL_PATH_LDA)
+    prediction_lda = clf_lda.predict(X_test)
+    
+    clf_nn = load(MODEL_PATH_NN)
+    prediction_nn = clf_nn.predict(X_test)
+    
+    return {'prediction LDA': int(prediction_lda), 'prediction Neural Network': int(prediction_nn)}
+    
+# Flask route so that we can server HTTP traffic on that route 
+@app.route("/score", methods=["POST", "GET"])
+# Return classification score for both Neural Network and LDA inference model from the all dataset provided
+def score():
+
+    data = pd.read_json('./test.json')
+    data_test = data.transpose()
+    y_test = data_test['# Letter'].values
+    X_test = data_test.drop(data_test.loc[:, 'Line':'# Letter'].columns, axis = 1)
+    
+    clf_lda = load(MODEL_PATH_LDA)
+    score_lda = clf_lda.score(X_test, y_test)
+    
+    clf_nn = load(MODEL_PATH_NN)
+    score_nn = clf_nn.score(X_test, y_test)
+    
+    return {'Score LDA': score_lda, 'Score Neural Network': score_nn}
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0")
